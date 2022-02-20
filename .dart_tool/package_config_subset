@@ -1,7 +1,7 @@
 esp32_visualizer
 2.16
-file:///home/ta7a/server-data-visualization/
-file:///home/ta7a/server-data-visualization/lib/
+file:///home/ta7a/server-data-visualization/esp32_visualizer/
+file:///home/ta7a/server-data-visualization/esp32_visualizer/lib/
 async
 2.12
 file:///home/ta7a/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/async-2.8.2/
