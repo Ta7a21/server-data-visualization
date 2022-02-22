@@ -1,2 +1,8 @@
+<<<<<<< HEAD
 2022/02/22-23:37:05.257 1f08 Creating DB C:\Users\Wahba\AppData\Local\Temp\flutter_tools.5bde545d\flutter_tools_chrome_device.1494e4de\Default\Storage\ext\gfdkimpbcpahaombhbimeihdjnejgicl\def\Local Storage\leveldb since it was missing.
 2022/02/22-23:37:05.275 1f08 Reusing MANIFEST C:\Users\Wahba\AppData\Local\Temp\flutter_tools.5bde545d\flutter_tools_chrome_device.1494e4de\Default\Storage\ext\gfdkimpbcpahaombhbimeihdjnejgicl\def\Local Storage\leveldb/MANIFEST-000001
+=======
+2022/02/22-21:49:50.899 d60 Reusing MANIFEST C:\Users\amael\AppData\Local\Temp\flutter_tools.a9f36390\flutter_tools_chrome_device.9c38a94f\Default\Storage\ext\gfdkimpbcpahaombhbimeihdjnejgicl\def\Local Storage\leveldb/MANIFEST-000001
+2022/02/22-21:49:50.903 d60 Recovering log #3
+2022/02/22-21:49:50.905 d60 Reusing old log C:\Users\amael\AppData\Local\Temp\flutter_tools.a9f36390\flutter_tools_chrome_device.9c38a94f\Default\Storage\ext\gfdkimpbcpahaombhbimeihdjnejgicl\def\Local Storage\leveldb/000003.log 
+>>>>>>> master
