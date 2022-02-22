@@ -13,6 +13,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  String chartTitle = "Pressure";
   List<Map<String, dynamic>> data = [
     {'year': 2021, 'percent': 8},
     {'year': 2022, 'percent': 20},
@@ -37,8 +38,8 @@ class _HomeState extends State<Home> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  const Text("Pressure"),
-                  Container(
+                  Text(chartTitle),
+                  SizedBox(
                     width: 500,
                     height: 500,
                     child: AspectRatio(
@@ -63,23 +64,51 @@ class _HomeState extends State<Home> {
               ),
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
-                  onPressed: () async {},
-                  child: const Text('Pressure'),
-                  style: ElevatedButton.styleFrom(
-                      primary: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50))),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        chartTitle = "Pressure";
+                        data = [
+                          {'year': 2021, 'percent': 8},
+                          {'year': 2022, 'percent': 70},
+                          {'year': 2023, 'percent': 90},
+                          {'year': 2024, 'percent': 46},
+                          {'year': 2025, 'percent': 20}
+                        ];
+                      });
+                    },
+                    child: const Text('Pressure'),
+                    style: ElevatedButton.styleFrom(
+                        primary: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50))),
+                  ),
                 ),
-                ElevatedButton(
-                  onPressed: () async {},
-                  child: const Text('Temperature'),
-                  style: ElevatedButton.styleFrom(
-                      primary: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50))),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        chartTitle = "Temperature";
+                        data = [
+                          {'year': 2021, 'percent': 8},
+                          {'year': 2022, 'percent': 20},
+                          {'year': 2023, 'percent': 40},
+                          {'year': 2024, 'percent': 56},
+                          {'year': 2025, 'percent': 70}
+                        ];
+                      });
+                    },
+                    child: const Text('Temperature'),
+                    style: ElevatedButton.styleFrom(
+                        primary: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50))),
+                  ),
                 ),
               ],
             )
