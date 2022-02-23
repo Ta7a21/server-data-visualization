@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:d_chart/d_chart.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:io';
 import 'dart:developer';
 
 void main() {
@@ -34,8 +33,6 @@ class _HomeState extends State<Home> {
         });
     if (res.statusCode == 200) {
       var jsonObject = json.decode(res.body);
-      var data = jsonObject["data"];
-      log("data:$data");
       return jsonObject["data"];
     }
   }
@@ -53,24 +50,34 @@ class _HomeState extends State<Home> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             FutureBuilder(
-              future: getData(),
-              builder: (context, AsyncSnapshot snapshot) {
-                log('deta:$snapshot');
-                if (snapshot.data != null) {
-                  return ListView.builder(
-                      itemCount: snapshot.data.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          elevation: 4,
-                          child: ListTile(
-                            title: Text(snapshot.data[index]["reading"]),
-                          ),
-                        );
+                future: getData(),
+                builder: (context, AsyncSnapshot snapshot) {
+                  if (snapshot.data != null) {
+                    var length = snapshot.data.length;
+                    data.clear();
+                    for (int i = 0; i < length; ++i) {
+                      data.add({
+                        'id': snapshot.data[i]["id"],
+                        'reading': snapshot.data[i]["reading"],
+                        'time': snapshot.data[i]["time"]
                       });
-                } else {
-                  return CircularProgressIndicator();
-                }
-              },
+                    }
+                    return ListView.builder(
+                        scrollDirection: Axis.vertical,
+                        shrinkWrap: true,
+                        itemCount: snapshot.data.length,
+                        itemBuilder: (context, index) {
+                          return Card(
+                            elevation: 4,
+                            child: ListTile(
+                              title: Text(snapshot.data[index]["reading"]),
+                            ),
+                          );
+                        });
+                  } else {
+                    return const CircularProgressIndicator();
+                  }
+                }),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
