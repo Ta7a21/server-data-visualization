@@ -16,16 +16,16 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  String chartTitle = "Pressure";
+  late Future<dynamic> _futureData;
   List<Map<String, dynamic>> data = [
-    {'year': 2021, 'percent': 8},
-    {'year': 2022, 'percent': 20},
-    {'year': 2023, 'percent': 40},
-    {'year': 2024, 'percent': 56},
-    {'year': 2025, 'percent': 70}
+    // {'year': 2021, 'percent': 8},
+    // {'year': 2022, 'percent': 20},
+    // {'year': 2023, 'percent': 40},
+    // {'year': 2024, 'percent': 56},
+    // {'year': 2025, 'percent': 70}
   ];
 
-  Future<dynamic> getData() async {
+  Future<dynamic> getTemperature() async {
     var res = await http.get(Uri.parse('http://localhost:8433/temperature'),
         headers: {
           "Accept": "application/json",
@@ -35,6 +35,24 @@ class _HomeState extends State<Home> {
       var jsonObject = json.decode(res.body);
       return jsonObject["data"];
     }
+  }
+
+  Future<dynamic> getPressure() async {
+    var res = await http.get(Uri.parse('http://localhost:8433/pressure'),
+        headers: {
+          "Accept": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        });
+    if (res.statusCode == 200) {
+      var jsonObject = json.decode(res.body);
+      return jsonObject["data"];
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _futureData = getTemperature();
   }
 
   @override
@@ -50,7 +68,7 @@ class _HomeState extends State<Home> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             FutureBuilder(
-                future: getData(),
+                future: _futureData,
                 builder: (context, AsyncSnapshot snapshot) {
                   if (snapshot.data != null) {
                     var length = snapshot.data.length;
@@ -70,7 +88,7 @@ class _HomeState extends State<Home> {
                           return Card(
                             elevation: 4,
                             child: ListTile(
-                              title: Text(snapshot.data[index]["reading"]),
+                              title: Text(snapshot.data[index]["time"]),
                             ),
                           );
                         });
@@ -82,8 +100,8 @@ class _HomeState extends State<Home> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  Text(chartTitle),
-                  SizedBox(
+                  const Text("Pressure"),
+                  Container(
                     width: 500,
                     height: 500,
                     child: AspectRatio(
@@ -94,8 +112,8 @@ class _HomeState extends State<Home> {
                             'id': 'Line',
                             'data': data.map((e) {
                               return {
-                                'domain': e['year'] - 2020,
-                                'measure': e['percent']
+                                'domain': e['reading'],
+                                'measure': e['id']
                               };
                             }).toList()
                           },
@@ -108,51 +126,31 @@ class _HomeState extends State<Home> {
               ),
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        chartTitle = "Pressure";
-                        data = [
-                          {'year': 2021, 'percent': 8},
-                          {'year': 2022, 'percent': 70},
-                          {'year': 2023, 'percent': 90},
-                          {'year': 2024, 'percent': 46},
-                          {'year': 2025, 'percent': 20}
-                        ];
-                      });
-                    },
-                    child: const Text('Pressure'),
-                    style: ElevatedButton.styleFrom(
-                        primary: Colors.blue,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50))),
-                  ),
+                ElevatedButton(
+                  onPressed: () async {
+                    setState(() {
+                      _futureData = getPressure();
+                    });
+                  },
+                  child: const Text('Pressure'),
+                  style: ElevatedButton.styleFrom(
+                      primary: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(50))),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        chartTitle = "Temperature";
-                        data = [
-                          {'year': 2021, 'percent': 8},
-                          {'year': 2022, 'percent': 20},
-                          {'year': 2023, 'percent': 40},
-                          {'year': 2024, 'percent': 56},
-                          {'year': 2025, 'percent': 70}
-                        ];
-                      });
-                    },
-                    child: const Text('Temperature'),
-                    style: ElevatedButton.styleFrom(
-                        primary: Colors.blue,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50))),
-                  ),
+                ElevatedButton(
+                  onPressed: () async {
+                    setState(() {
+                      _futureData = getTemperature();
+                    });
+                  },
+                  child: const Text('Temperature'),
+                  style: ElevatedButton.styleFrom(
+                      primary: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(50))),
                 ),
               ],
             )
