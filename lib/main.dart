@@ -31,6 +31,10 @@ getPressure() async {
   }
 }
 
+toggleLed() async {
+  await http.post(Uri.parse(serverLink + 'toggleLed'));
+}
+
 bool dataAreEqual(
     List<dynamic> upcomingData, List<Map<String, dynamic>> currentData) {
   if (upcomingData.length != currentData.length) return false;
@@ -175,9 +179,7 @@ class _HomeState extends State<Home> {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: ElevatedButton(
-                onPressed: () async {
-                  await http.post(Uri.parse(serverLink + 'toggleLed'));
-                },
+                onPressed: toggleLed(),
                 child: const Text('Toggle LED'),
                 style: ElevatedButton.styleFrom(
                     primary: Colors.blue,
