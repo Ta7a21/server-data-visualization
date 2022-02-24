@@ -3,6 +3,7 @@ import 'package:d_chart/d_chart.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:developer';
+import 'package:quiver/async.dart';
 
 void main() {
   runApp(const MaterialApp(home: Home()));
@@ -16,16 +17,10 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  late Future<dynamic> _futureData;
-  List<Map<String, dynamic>> data = [
-    // {'year': 2021, 'percent': 8},
-    // {'year': 2022, 'percent': 20},
-    // {'year': 2023, 'percent': 40},
-    // {'year': 2024, 'percent': 56},
-    // {'year': 2025, 'percent': 70}
-  ];
+  String chartTitle = "";
+  List<Map<String, dynamic>> data = [];
 
-  Future<dynamic> getTemperature() async {
+  getTemperature() async {
     var res = await http.get(Uri.parse('http://localhost:8433/temperature'),
         headers: {
           "Accept": "application/json",
@@ -37,7 +32,7 @@ class _HomeState extends State<Home> {
     }
   }
 
-  Future<dynamic> getPressure() async {
+  getPressure() async {
     var res = await http.get(Uri.parse('http://localhost:8433/pressure'),
         headers: {
           "Accept": "application/json",
@@ -49,10 +44,48 @@ class _HomeState extends State<Home> {
     }
   }
 
+  final int _start = 1000;
+  int _current = 1000;
+  late CountdownTimer countDownTimer;
+
+  CountdownTimer startTimer(String sensor) {
+    CountdownTimer countDownTimer = CountdownTimer(
+      Duration(seconds: _start),
+      const Duration(seconds: 2),
+    );
+    var sub = countDownTimer.listen(null);
+    sub.onData((duration) async {
+      var tempData;
+      if (sensor == "temperature") {
+        tempData = await getTemperature();
+      } else {
+        tempData = await getPressure();
+      }
+      setState(() {
+        _current = _start - duration.elapsed.inSeconds;
+
+        var length = tempData.length;
+        data.clear();
+        for (int i = 0; i < length; ++i) {
+          data.add({
+            'id': tempData[i]["id"],
+            'reading': tempData[i]["reading"],
+            'time': tempData[i]["time"]
+          });
+        }
+      });
+    });
+
+    sub.onDone(() {
+      sub.cancel();
+    });
+
+    return countDownTimer;
+  }
+
   @override
   void initState() {
     super.initState();
-    _futureData = getTemperature();
   }
 
   @override
@@ -67,41 +100,12 @@ class _HomeState extends State<Home> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            FutureBuilder(
-                future: _futureData,
-                builder: (context, AsyncSnapshot snapshot) {
-                  if (snapshot.data != null) {
-                    var length = snapshot.data.length;
-                    data.clear();
-                    for (int i = 0; i < length; ++i) {
-                      data.add({
-                        'id': snapshot.data[i]["id"],
-                        'reading': snapshot.data[i]["reading"],
-                        'time': snapshot.data[i]["time"]
-                      });
-                    }
-                    return ListView.builder(
-                        scrollDirection: Axis.vertical,
-                        shrinkWrap: true,
-                        itemCount: snapshot.data.length,
-                        itemBuilder: (context, index) {
-                          return Card(
-                            elevation: 4,
-                            child: ListTile(
-                              title: Text(snapshot.data[index]["time"]),
-                            ),
-                          );
-                        });
-                  } else {
-                    return const CircularProgressIndicator();
-                  }
-                }),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  const Text("Pressure"),
-                  Container(
+                  Text(chartTitle),
+                  SizedBox(
                     width: 500,
                     height: 500,
                     child: AspectRatio(
@@ -126,31 +130,35 @@ class _HomeState extends State<Home> {
               ),
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
-                  onPressed: () async {
-                    setState(() {
-                      _futureData = getPressure();
-                    });
-                  },
-                  child: const Text('Pressure'),
-                  style: ElevatedButton.styleFrom(
-                      primary: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50))),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      chartTitle = "Pressure";
+                      // countDownTimer = startTimer("pressure");
+                    },
+                    child: const Text('Pressure'),
+                    style: ElevatedButton.styleFrom(
+                        primary: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50))),
+                  ),
                 ),
-                ElevatedButton(
-                  onPressed: () async {
-                    setState(() {
-                      _futureData = getTemperature();
-                    });
-                  },
-                  child: const Text('Temperature'),
-                  style: ElevatedButton.styleFrom(
-                      primary: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50))),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      chartTitle = "Temperature";
+                      // countDownTimer = startTimer("temperature");
+                    },
+                    child: const Text('Temperature'),
+                    style: ElevatedButton.styleFrom(
+                        primary: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50))),
+                  ),
                 ),
               ],
             )
