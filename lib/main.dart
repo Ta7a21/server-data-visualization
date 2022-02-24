@@ -179,7 +179,7 @@ class _HomeState extends State<Home> {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: ElevatedButton(
-                onPressed: toggleLed(),
+                onPressed: () => toggleLed(),
                 child: const Text('Toggle LED'),
                 style: ElevatedButton.styleFrom(
                     primary: Colors.blue,
