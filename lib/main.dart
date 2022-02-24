@@ -1,15 +1,56 @@
-import 'dart:ffi';
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:d_chart/d_chart.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:developer';
 import 'package:quiver/async.dart';
 
 void main() {
   runApp(const MaterialApp(home: Home()));
+}
+
+const String serverLink = 'http://localhost:8433/';
+getTemperature() async {
+  var res = await http.get(Uri.parse(serverLink + 'temperature'), headers: {
+    "Accept": "application/json",
+    "Access-Control-Allow-Origin": "*"
+  });
+  if (res.statusCode == 200) {
+    var jsonObject = json.decode(res.body);
+    return jsonObject["data"];
+  }
+}
+
+getPressure() async {
+  var res = await http.get(Uri.parse(serverLink + 'pressure'), headers: {
+    "Accept": "application/json",
+    "Access-Control-Allow-Origin": "*"
+  });
+  if (res.statusCode == 200) {
+    var jsonObject = json.decode(res.body);
+    return jsonObject["data"];
+  }
+}
+
+bool dataAreEqual(
+    List<dynamic> upcomingData, List<Map<String, dynamic>> currentData) {
+  if (upcomingData.length != currentData.length) return false;
+  for (int i = 0; i < currentData.length; ++i) {
+    if (currentData[i]["reading"] != upcomingData[i]["reading"]) return false;
+  }
+  return true;
+}
+
+List<Map<String, dynamic>> convertToListOfMap(List<dynamic> data) {
+  List<Map<String, dynamic>> newData = [];
+  var length = data.length;
+  for (int i = 0; i < length; ++i) {
+    newData.add({
+      'id': data[i]["id"],
+      'reading': data[i]["reading"],
+      'time': data[i]["time"]
+    });
+  }
+  return newData;
 }
 
 class Home extends StatefulWidget {
@@ -20,42 +61,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  String chartTitle = "";
+  String chartTitle = "Pressure";
   List<Map<String, dynamic>> data = [];
-
-  getTemperature() async {
-    var res = await http.get(Uri.parse('http://localhost:8433/temperature'),
-        headers: {
-          "Accept": "application/json",
-          "Access-Control-Allow-Origin": "*"
-        });
-    if (res.statusCode == 200) {
-      var jsonObject = json.decode(res.body);
-      return jsonObject["data"];
-    }
-  }
-
-  getPressure() async {
-    var res = await http.get(Uri.parse('http://localhost:8433/pressure'),
-        headers: {
-          "Accept": "application/json",
-          "Access-Control-Allow-Origin": "*"
-        });
-    if (res.statusCode == 200) {
-      var jsonObject = json.decode(res.body);
-      return jsonObject["data"];
-    }
-  }
-
-  bool dataAreEqual(
-      List<dynamic> upcomingData, List<Map<String, dynamic>> currentData) {
-    if (upcomingData.length != currentData.length) return false;
-    for (int i = 0; i < currentData.length; ++i) {
-      if (currentData[i]["reading"] != upcomingData[i]["reading"]) return false;
-    }
-    log("data");
-    return true;
-  }
 
   final int _start = 1000;
   late CountdownTimer countDownTimer;
@@ -67,23 +74,12 @@ class _HomeState extends State<Home> {
     );
     var sub = countDownTimer.listen(null);
     sub.onData((duration) async {
-      var tempData;
-      if (sensor == "temperature") {
-        tempData = await getTemperature();
-      } else {
-        tempData = await getPressure();
-      }
+      var tempData = (sensor == "temperature")
+          ? await getTemperature()
+          : await getPressure();
       if (dataAreEqual(tempData, data)) return;
       setState(() {
-        var length = tempData.length;
-        data.clear();
-        for (int i = 0; i < length; ++i) {
-          data.add({
-            'id': tempData[i]["id"],
-            'reading': tempData[i]["reading"],
-            'time': tempData[i]["time"]
-          });
-        }
+        data = convertToListOfMap(tempData);
       });
     });
 
@@ -180,7 +176,7 @@ class _HomeState extends State<Home> {
               padding: const EdgeInsets.all(16.0),
               child: ElevatedButton(
                 onPressed: () async {
-                  await http.post(Uri.parse('http://localhost:8433/toggleLed'));
+                  await http.post(Uri.parse(serverLink + 'toggleLed'));
                 },
                 child: const Text('Toggle LED'),
                 style: ElevatedButton.styleFrom(
