@@ -1,3 +1,6 @@
+import 'dart:ffi';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:d_chart/d_chart.dart';
 import 'package:http/http.dart' as http;
@@ -44,14 +47,23 @@ class _HomeState extends State<Home> {
     }
   }
 
+  bool dataAreEqual(
+      List<dynamic> upcomingData, List<Map<String, dynamic>> currentData) {
+    if (upcomingData.length != currentData.length) return false;
+    for (int i = 0; i < currentData.length; ++i) {
+      if (currentData[i]["reading"] != upcomingData[i]["reading"]) return false;
+    }
+    log("data");
+    return true;
+  }
+
   final int _start = 1000;
-  int _current = 1000;
   late CountdownTimer countDownTimer;
 
-  CountdownTimer startTimer(String sensor) {
-    CountdownTimer countDownTimer = CountdownTimer(
+  void startTimer(String sensor) {
+    countDownTimer = CountdownTimer(
       Duration(seconds: _start),
-      const Duration(seconds: 2),
+      const Duration(seconds: 1),
     );
     var sub = countDownTimer.listen(null);
     sub.onData((duration) async {
@@ -61,9 +73,8 @@ class _HomeState extends State<Home> {
       } else {
         tempData = await getPressure();
       }
+      if (dataAreEqual(tempData, data)) return;
       setState(() {
-        _current = _start - duration.elapsed.inSeconds;
-
         var length = tempData.length;
         data.clear();
         for (int i = 0; i < length; ++i) {
@@ -79,13 +90,12 @@ class _HomeState extends State<Home> {
     sub.onDone(() {
       sub.cancel();
     });
-
-    return countDownTimer;
   }
 
   @override
   void initState() {
     super.initState();
+    startTimer("pressure");
   }
 
   @override
@@ -116,8 +126,10 @@ class _HomeState extends State<Home> {
                             'id': 'Line',
                             'data': data.map((e) {
                               return {
-                                'domain': e['reading'],
-                                'measure': e['id']
+                                'domain': data[0]['time'] != null
+                                    ? (e['time'] - data[0]['time']) / 1000
+                                    : 0,
+                                'measure': e['reading']
                               };
                             }).toList()
                           },
@@ -137,7 +149,8 @@ class _HomeState extends State<Home> {
                   child: ElevatedButton(
                     onPressed: () async {
                       chartTitle = "Pressure";
-                      // countDownTimer = startTimer("pressure");
+                      countDownTimer.cancel();
+                      startTimer("pressure");
                     },
                     child: const Text('Pressure'),
                     style: ElevatedButton.styleFrom(
@@ -151,7 +164,8 @@ class _HomeState extends State<Home> {
                   child: ElevatedButton(
                     onPressed: () async {
                       chartTitle = "Temperature";
-                      // countDownTimer = startTimer("temperature");
+                      countDownTimer.cancel();
+                      startTimer("temperature");
                     },
                     child: const Text('Temperature'),
                     style: ElevatedButton.styleFrom(
@@ -161,7 +175,20 @@ class _HomeState extends State<Home> {
                   ),
                 ),
               ],
-            )
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ElevatedButton(
+                onPressed: () async {
+                  await http.post(Uri.parse('http://localhost:8433/toggleLed'));
+                },
+                child: const Text('Toggle LED'),
+                style: ElevatedButton.styleFrom(
+                    primary: Colors.blue,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50))),
+              ),
+            ),
           ],
         ),
       ),
